@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 
@@ -20,7 +21,7 @@ type Header struct {
 
 type Block struct{
 	*Header
-	Transactions []Transaction
+	Transactions []*Transaction
 	Validator    crypto.PublicKey
 	Signature    *crypto.Signature
 
@@ -35,23 +36,23 @@ func (h *Header) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func (b *Block) Hash(hasher Hasher[*Block]) types.Hash{
+func (b *Block) Hash(hasher Hasher[*Header]) types.Hash{
 	//buf:= &bytes.Buffer{}
 	//b.Header.EncodeBinary(buf)
 
 	if b.hash.IsZero(){
 		//b.hash=types.Hash(sha256.Sum256(buf.Bytes()))
-		b.hash = hasher.Hash(b)
+		b.hash = hasher.Hash(b.Header)
 	}
 
 	return b.hash
 }
 
-func NewBlock(h *Header, txx []Transaction) *Block {
+func NewBlock(h *Header, txx []*Transaction) (*Block,error) {
 	return &Block{
 		Header:       h,
 		Transactions: txx,
-	}
+	},nil
 }
 
 func (b *Block) Decode(dec Decoder[*Block]) error {
@@ -100,4 +101,18 @@ func (b *Block) Verify() error {
 	// }
 
 	return nil
+}
+
+func CalculateDataHash(txx []*Transaction) (hash types.Hash, err error) {
+	buf := &bytes.Buffer{}
+
+	for _, tx := range txx {
+		if err = tx.Encode(NewGobTxEncoder(buf)); err != nil {
+			return
+		}
+	}
+
+	hash = sha256.Sum256(buf.Bytes())
+
+	return
 }

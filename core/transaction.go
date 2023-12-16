@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"io"
+	
 
 	"github.com/ANNMAINAWANGARI/blockchain/crypto"
 )
@@ -13,9 +13,16 @@ type Transaction struct{
 	Signature    *crypto.Signature
 }
 
-func (tsx *Transaction) EncodeBinary(w io.Writer) error { return nil }
+// func (tsx *Transaction) EncodeBinary(w io.Writer) error { return nil }
 
-func (tsx *Transaction) DecodeBinary(r io.Reader) error { return nil }
+// func (tsx *Transaction) DecodeBinary(r io.Reader) error { return nil }
+func (tx *Transaction) Decode(dec Decoder[*Transaction]) error {
+	return dec.Decode(tx)
+}
+
+func (tx *Transaction) Encode(enc Encoder[*Transaction]) error {
+	return enc.Encode(tx)
+}
 
 func (tx *Transaction) Sign(privKey crypto.PrivateKey) error {
 	sig,err:=privKey.Sign(tx.Data)
