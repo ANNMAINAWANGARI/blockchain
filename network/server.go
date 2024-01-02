@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ANNMAINAWANGARI/blockchain/core"
 	"github.com/ANNMAINAWANGARI/blockchain/crypto"
+	"github.com/sirupsen/logrus"
 )
 
 type ServerOpts struct {
@@ -50,6 +52,28 @@ free:
 	}
 
 	fmt.Printf("Server shutdown")
+}
+
+func (s *Server) handleTransaction(tx *core.Transaction) error {
+	if err := tx.Verify(); err != nil {
+		return err
+	}
+
+	hash := tx.Hash(core.TxHasher{})
+
+	if s.memPool.Has(hash) {
+		logrus.WithFields(logrus.Fields{
+			"hash": hash,
+		}).Info("transaction already in mempool")
+
+		return nil
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"hash": hash,
+	}).Info("adding new tx to the mempool")
+
+	return s.memPool.Add(tx)
 }
 
 func (s *Server) initTransports() {
