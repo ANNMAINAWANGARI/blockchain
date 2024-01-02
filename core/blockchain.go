@@ -8,9 +8,9 @@ import (
 
 type Blockchain struct {
 	store     Storage
+	lock      sync.RWMutex
 	headers   []*Header
 	validator Validator
-	lock      sync.RWMutex
 	logger    log.Logger
 }
 
@@ -44,11 +44,16 @@ func (bc *Blockchain) HasBlock(height uint32) bool {
 // [0, 1, 2 ,3] => 4 len
 // [0, 1, 2 ,3] => 3 height
 func (bc *Blockchain) Height() uint32 {
+	bc.lock.RLock()
+	defer bc.lock.RUnlock()
 	return uint32(len(bc.headers) - 1)
 }
 
 func (bc *Blockchain) addBlockWithoutValidation(b *Block) error {
+	bc.lock.RLock()
 	bc.headers = append(bc.headers, b.Header)
+	defer bc.lock.RUnlock()
+	
 
 	return bc.store.Put(b)
 }

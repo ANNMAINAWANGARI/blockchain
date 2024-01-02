@@ -3,22 +3,32 @@ package network
 import (
 	"fmt"
 	"time"
+
+	"github.com/ANNMAINAWANGARI/blockchain/crypto"
 )
 
 type ServerOpts struct {
 	Transports []Transport
+	BlockTime  time.Duration
+	PrivateKey *crypto.PrivateKey
 }
 
 type Server struct {
 	ServerOpts
+	blockTime   time.Duration
 	rpcCh  chan RPC
+	memPool     *TxPool
+	isValidator bool
 	quitCh chan struct{}
 }
 
 func NewServer(opts ServerOpts) *Server {
 	return &Server{
 		ServerOpts: opts,
+		blockTime:   opts.BlockTime,
+		memPool: NewTxPool(),
 		rpcCh:      make(chan RPC),
+		isValidator: opts.PrivateKey != nil,//if we have a privatekey then we are a validator
 		quitCh:     make(chan struct{}, 1),
 	}
 }

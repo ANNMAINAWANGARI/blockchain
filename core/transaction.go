@@ -2,15 +2,22 @@ package core
 
 import (
 	"fmt"
-	
 
 	"github.com/ANNMAINAWANGARI/blockchain/crypto"
+	"github.com/ANNMAINAWANGARI/blockchain/types"
 )
 
 type Transaction struct{
 	Data []byte
 	PublicKey crypto.PublicKey
 	Signature    *crypto.Signature
+	hash types.Hash
+}
+
+func NewTransaction(data []byte) *Transaction {
+	return &Transaction{
+		Data: data,
+	}
 }
 
 // func (tsx *Transaction) EncodeBinary(w io.Writer) error { return nil }
@@ -45,4 +52,12 @@ func (tx *Transaction) Verify() error {
 	}
 
 	return nil
+}
+
+
+func (tx *Transaction) Hash(hasher Hasher[*Transaction]) types.Hash {
+	if tx.hash.IsZero() {
+		tx.hash = hasher.Hash(tx)
+	}
+	return tx.hash
 }

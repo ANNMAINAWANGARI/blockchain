@@ -48,11 +48,11 @@ func (b *Block) Hash(hasher Hasher[*Header]) types.Hash{
 	return b.hash
 }
 
-func NewBlock(h *Header, txx []*Transaction) (*Block,error) {
+func NewBlock(h *Header, txx []*Transaction) *Block {
 	return &Block{
 		Header:       h,
 		Transactions: txx,
-	},nil
+	}
 }
 
 func (b *Block) Decode(dec Decoder[*Block]) error {
