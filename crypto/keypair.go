@@ -17,11 +17,11 @@ type PrivateKey struct {
 }
 
 type PublicKey struct {
-	key *ecdsa.PublicKey
+	Key *ecdsa.PublicKey
 }
 
 type Signature struct {
-	r,s *big.Int
+	R,S *big.Int
 	
 }
 
@@ -32,8 +32,8 @@ func (k PrivateKey) Sign(data []byte) (*Signature, error) {
 	}
 
 	return &Signature{
-		r:r,
-		s:s}, nil
+		R:r,
+		S:s}, nil
 }
 
 func GeneratePrivateKey() PrivateKey{
@@ -49,7 +49,7 @@ func GeneratePrivateKey() PrivateKey{
 
 func (k PrivateKey) PublicKey() PublicKey{
 	return PublicKey{
-		key: &k.key.PublicKey,
+		Key: &k.key.PublicKey,
 	}
 }
 
@@ -61,16 +61,16 @@ func (k PublicKey) Address() types.Address{
 }
 
 func (k PublicKey) ToSlice() []byte{
-	return elliptic.MarshalCompressed(k.key, k.key.X, k.key.Y)
+	return elliptic.MarshalCompressed(k.Key, k.Key.X, k.Key.Y)
 }
 
 func (sig Signature) String() string {
-	b := append(sig.s.Bytes(), sig.r.Bytes()...)
+	b := append(sig.S.Bytes(), sig.R.Bytes()...)
 	return hex.EncodeToString(b)
 }
 
 func (sig Signature) Verify(pubKey PublicKey, data []byte) bool {
 	
 
-	return ecdsa.Verify(pubKey.key, data, sig.r, sig.s)
+	return ecdsa.Verify(pubKey.Key, data, sig.R, sig.S)
 }

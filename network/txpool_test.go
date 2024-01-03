@@ -1,6 +1,8 @@
 package network
 
 import (
+	"math/rand"
+	"strconv"
 	"testing"
 
 	"github.com/ANNMAINAWANGARI/blockchain/core"
@@ -23,4 +25,23 @@ func TestTxPoolAddTx(t *testing.T) {
 
 	p.Flush()
 	assert.Equal(t, p.Len(), 0)
+}
+
+func TestSortTransactions(t *testing.T) {
+	p := NewTxPool()
+	txLen := 1000
+
+	for i := 0; i < txLen; i++ {
+		//we are hashing the transaction data only in this case which results in the same hash. To avoid that we use strconv.FormatInt() to encode to hex
+		tx := core.NewTransaction([]byte(strconv.FormatInt(int64(i), 10)))
+		tx.SetFirstSeen(int64(i * rand.Intn(10000)))
+		assert.Nil(t, p.Add(tx))
+	}
+
+	assert.Equal(t, txLen, p.Len())
+
+	txx := p.Transactions()
+	for i := 0; i < len(txx)-1; i++ {
+		assert.True(t, txx[i].FirstSeen() < txx[i+1].FirstSeen())
+	}
 }

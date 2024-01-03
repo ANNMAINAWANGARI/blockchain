@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/ANNMAINAWANGARI/blockchain/crypto"
@@ -40,4 +41,19 @@ func randomTxWithSignature(t *testing.T) *Transaction {
 	assert.Nil(t, tx.Sign(privKey))
 
 	return &tx
+}
+
+func TestTxEncodeDecode(t *testing.T) {
+	//create new transaction with signature
+	tx := randomTxWithSignature(t)
+	//create a buffer
+	buf := &bytes.Buffer{}
+	//encode it into the buffer
+	assert.Nil(t, tx.Encode(NewGobTxEncoder(buf)))
+
+	//make new empty transaction
+	txDecoded := new(Transaction)
+	//decode the buffer into the new transaction
+	assert.Nil(t, txDecoded.Decode(NewGobTxDecoder(buf)))
+	assert.Equal(t, tx, txDecoded)
 }

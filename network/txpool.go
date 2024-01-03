@@ -1,12 +1,54 @@
 package network
 
 import (
+	"sort"
+
 	"github.com/ANNMAINAWANGARI/blockchain/core"
 	"github.com/ANNMAINAWANGARI/blockchain/types"
 )
 
 type TxPool struct {
 	transactions map[types.Hash]*core.Transaction
+}
+
+func (p *TxPool) Transactions() []*core.Transaction {
+	s := NewTxMapSorter(p.transactions)
+	return s.transactions
+}
+
+type TxMapSorter struct {
+	transactions []*core.Transaction
+}
+
+// Len implements sort.Interface.
+func (s *TxMapSorter) Len() int {
+	return len(s.transactions)
+}
+
+// Less implements sort.Interface.
+func (s *TxMapSorter) Less(i int, j int) bool {
+	return s.transactions[i].FirstSeen() < s.transactions[j].FirstSeen()
+}
+
+// Swap implements sort.Interface.
+func (s *TxMapSorter) Swap(i int, j int) {
+	s.transactions[i], s.transactions[j] = s.transactions[j], s.transactions[i]
+}
+
+func NewTxMapSorter(txMap map[types.Hash]*core.Transaction) *TxMapSorter {
+	txx := make([]*core.Transaction, len(txMap))
+
+	i := 0
+	for _, val := range txMap {
+		txx[i] = val
+		i++
+	}
+
+	s := &TxMapSorter{txx}
+
+	sort.Sort(s)
+
+	return s
 }
 
 func NewTxPool() *TxPool {
@@ -21,7 +63,7 @@ func (p *TxPool) Len() int {
 
 func (p *TxPool) Add(tx *core.Transaction) error {
 	hash := tx.Hash(core.TxHasher{})
-	
+
 	p.transactions[hash] = tx
 
 	return nil
